@@ -13,6 +13,7 @@ import {
   BarChart3,
   Settings,
   BookOpen,
+  Database,
 } from "lucide-react";
 
 export const Sidebar = ({ isOpen, onClose }) => {
@@ -73,6 +74,13 @@ export const Sidebar = ({ isOpen, onClose }) => {
       to: "/reports",
       icon: BarChart3,
       label: "Sales Reports",
+    },
+    {
+      to: "/reports?tab=export",
+      icon: Database,
+      label: "Backup & Export",
+      badge: "Save",
+      badgeColor: "green",
     },
     {
       to: "/settings",

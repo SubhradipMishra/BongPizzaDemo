@@ -1,40 +1,22 @@
-
 import OrderModel from "../order/order.model.js";
 import PaymentModel from "../payments/payments.model.js";
+import { getISTDateRange } from "../utils/timezone.js";
+import {
+    fetchExportData,
+    generateCombinedSalesExcel,
+    generateSalesSummaryCsv,
+    generateOrdersCsv,
+    generatePaymentsCsv,
+    calculateSalesSummary,
+} from "./export.service.js";
 
-// HELPER: VALIDATE DATE RANGE
-const getDateRange = (startDate, endDate) => {
-    const start = startDate ? new Date(startDate) : new Date();
-    const end = endDate ? new Date(endDate) : new Date();
-
-    if (
-        Number.isNaN(start.getTime()) ||
-        Number.isNaN(end.getTime())
-    ) {
-        return null;
-    }
-
-    if (
-        (startDate && !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) ||
-        (endDate && !/^\d{4}-\d{2}-\d{2}$/.test(endDate))
-    ) {
-        return null;
-    }
-
-    if (startDate) start.setHours(0, 0, 0, 0);
-    if (endDate) end.setHours(23, 59, 59, 999);
-
-    if (start > end) return null;
-
-    return { start, end };
-};
-
-// GET SALES REPORT
+// GET SALES REPORT (Analytics API)
 export const getSalesReport = async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
 
-        const range = getDateRange(startDate, endDate);
+        // Use IST inclusive date range
+        const range = getISTDateRange(startDate, endDate);
 
         if (!range) {
             return res.status(400).json({
@@ -246,11 +228,26 @@ export const getSalesReport = async (req, res) => {
         const money = (value) =>
             Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 
+        // Properly populate payment method breakdown
+        const methodCollections = {
+            cash: 0,
+            upi: 0,
+            card: 0,
+        };
+
+        (paymentBreakdown || []).forEach((item) => {
+            if (item.method && methodCollections[item.method] !== undefined) {
+                methodCollections[item.method] = money(item.amount);
+            }
+        });
+
         return res.status(200).json({
             success: true,
             period: {
-                startDate: start.toISOString(),
-                endDate: end.toISOString(),
+                startDate: range.start.toISOString(),
+                endDate: range.end.toISOString(),
+                startDateStr: range.startDateStr,
+                endDateStr: range.endDateStr,
             },
             data: {
                 sales: {
@@ -273,11 +270,7 @@ export const getSalesReport = async (req, res) => {
                 collections: {
                     totalCollected: money(collections.totalCollected),
                     transactionCount: collections.transactionCount,
-                    paymentMethods: {
-                        cash: 0,
-                        upi: 0,
-                        card: 0,
-                    },
+                    paymentMethods: methodCollections,
                 },
 
                 bestSellingItems,
@@ -296,7 +289,7 @@ export const getSalesReport = async (req, res) => {
 // GET PAYMENT METHOD BREAKDOWN
 export const getPaymentBreakdown = async (req, res) => {
     try {
-        const range = getDateRange(
+        const range = getISTDateRange(
             req.query.startDate,
             req.query.endDate
         );
@@ -361,6 +354,8 @@ export const getPaymentBreakdown = async (req, res) => {
             period: {
                 startDate: range.start.toISOString(),
                 endDate: range.end.toISOString(),
+                startDateStr: range.startDateStr,
+                endDateStr: range.endDateStr,
             },
             data: breakdown,
         });
@@ -370,6 +365,164 @@ export const getPaymentBreakdown = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to generate payment breakdown",
+        });
+    }
+};
+
+/**
+ * ─────────────────────────────────────────────────────────────
+ * EXPORT CONTROLLERS: Excel (.xlsx) and CSV (.csv)
+ * ─────────────────────────────────────────────────────────────
+ */
+
+// EXPORT COMBINED SALES REPORT
+export const exportSalesReport = async (req, res) => {
+    try {
+        const { startDate, endDate, format = "xlsx" } = req.query;
+        const range = getISTDateRange(startDate, endDate);
+
+        if (!range) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date range. Use YYYY-MM-DD.",
+            });
+        }
+
+        const { orders, payments } = await fetchExportData(range);
+        const filenameBase = `BongPizza_Sales_Report_${range.startDateStr}_to_${range.endDateStr}`;
+
+        if (format.toLowerCase() === "csv") {
+            const csvData = generateSalesSummaryCsv(range, orders, payments);
+            res.setHeader("Content-Type", "text/csv; charset=utf-8");
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${filenameBase}.csv"`
+            );
+            return res.status(200).send(csvData);
+        }
+
+        // Default to Excel
+        const workbook = await generateCombinedSalesExcel(range, orders, payments);
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${filenameBase}.xlsx"`
+        );
+        await workbook.xlsx.write(res);
+        return res.end();
+    } catch (error) {
+        console.error("Export sales report error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to export sales report: " + error.message,
+        });
+    }
+};
+
+// EXPORT ORDERS LIST
+export const exportOrders = async (req, res) => {
+    try {
+        const { startDate, endDate, format = "xlsx" } = req.query;
+        const range = getISTDateRange(startDate, endDate);
+
+        if (!range) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date range. Use YYYY-MM-DD.",
+            });
+        }
+
+        const { orders } = await fetchExportData(range);
+        const filenameBase = `BongPizza_Orders_${range.startDateStr}_to_${range.endDateStr}`;
+
+        if (format.toLowerCase() === "csv") {
+            const csvData = generateOrdersCsv(orders);
+            res.setHeader("Content-Type", "text/csv; charset=utf-8");
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${filenameBase}.csv"`
+            );
+            return res.status(200).send(csvData);
+        }
+
+        // Excel format - Use the orders sheet generator
+        const workbook = await generateCombinedSalesExcel(range, orders, []);
+        // Retain only Orders worksheet
+        const summarySheet = workbook.getWorksheet("Sales Summary");
+        const paymentsSheet = workbook.getWorksheet("Payments");
+        if (summarySheet) workbook.removeWorksheet(summarySheet.id);
+        if (paymentsSheet) workbook.removeWorksheet(paymentsSheet.id);
+
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${filenameBase}.xlsx"`
+        );
+        await workbook.xlsx.write(res);
+        return res.end();
+    } catch (error) {
+        console.error("Export orders error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to export orders: " + error.message,
+        });
+    }
+};
+
+// EXPORT PAYMENTS LIST
+export const exportPayments = async (req, res) => {
+    try {
+        const { startDate, endDate, format = "xlsx" } = req.query;
+        const range = getISTDateRange(startDate, endDate);
+
+        if (!range) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date range. Use YYYY-MM-DD.",
+            });
+        }
+
+        const { payments } = await fetchExportData(range);
+        const filenameBase = `BongPizza_Payments_${range.startDateStr}_to_${range.endDateStr}`;
+
+        if (format.toLowerCase() === "csv") {
+            const csvData = generatePaymentsCsv(payments);
+            res.setHeader("Content-Type", "text/csv; charset=utf-8");
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${filenameBase}.csv"`
+            );
+            return res.status(200).send(csvData);
+        }
+
+        // Excel format
+        const workbook = await generateCombinedSalesExcel(range, [], payments);
+        const summarySheet = workbook.getWorksheet("Sales Summary");
+        const ordersSheet = workbook.getWorksheet("Orders");
+        if (summarySheet) workbook.removeWorksheet(summarySheet.id);
+        if (ordersSheet) workbook.removeWorksheet(ordersSheet.id);
+
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${filenameBase}.xlsx"`
+        );
+        await workbook.xlsx.write(res);
+        return res.end();
+    } catch (error) {
+        console.error("Export payments error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to export payments: " + error.message,
         });
     }
 };

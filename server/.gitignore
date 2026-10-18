@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 
 node_modules
+backups/
+*.json.gz
 
 # Environment — ignore secrets, keep example
 .env

@@ -69,3 +69,51 @@ export const apiClient = async (endpoint, options = {}) => {
     throw error;
   }
 };
+
+/**
+ * Downloads a binary file (e.g. .xlsx, .csv, .json.gz) with auth headers
+ * and automatically triggers browser download.
+ */
+export const downloadBlob = async (endpoint, fallbackFilename = "download") => {
+  const url = `${BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+  const headers = {};
+  const token = getStoredToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    let errorMsg = `Download failed with status ${response.status}`;
+    try {
+      const errData = await response.json();
+      if (errData.message) errorMsg = errData.message;
+    } catch (_) {}
+    throw new Error(errorMsg);
+  }
+
+  let filename = fallbackFilename;
+  const disposition = response.headers.get("content-disposition");
+  if (disposition && disposition.includes("filename=")) {
+    const match = disposition.match(/filename=["']?([^"']+)["']?/);
+    if (match && match[1]) filename = match[1];
+  }
+
+  const blob = await response.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(blobUrl);
+
+  return { success: true, filename };
+};
+

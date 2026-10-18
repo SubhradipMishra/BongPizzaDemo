@@ -16,9 +16,15 @@ import KOTRouter from "./kot/kot.route.js";
 import RecieptRouter from "./reciept/reciept.route.js";
 import SettingsRouter from "./settings/settings.route.js";
 import ReportRouter from "./report/report.route.js";
+import BackupRouter from "./backup/backup.route.js";
+import { initBackupScheduler } from "./backup/backup.scheduler.js";
 
 mongoose.connect(process.env.DB_URL)
-    .then(() => console.log("DB CONNECTED SUCCESSFULLY..."))
+    .then(() => {
+        console.log("DB CONNECTED SUCCESSFULLY...");
+        // Initialize scheduled daily backup
+        initBackupScheduler();
+    })
     .catch((err) => console.log(`DB failed to connect :- ${err}`));
 
 const app = express();
@@ -59,6 +65,7 @@ app.use("/api/kot", KOTRouter);
 app.use("/api/reciept", RecieptRouter);
 app.use("/api/settings", SettingsRouter);
 app.use("/api/report", ReportRouter);
+app.use("/api/backup", BackupRouter);
 
 const PORT = process.env.PORT || 7070;
 app.listen(PORT, () => {
