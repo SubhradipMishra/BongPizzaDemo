@@ -50,11 +50,11 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2.5">
-            <div className="w-10 h-10 rounded-xl bg-[#FFC928] flex items-center justify-center shadow-xs">
-              <Pizza className="w-6 h-6 text-[#D62828]" />
+            <div className="w-10 h-10 rounded-xl bg-black border border-amber-400/40 p-0.5 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
+              <img src="/images/logo.jpeg" alt="বং Pizza" className="w-full h-full object-contain" />
             </div>
-            <span className="font-extrabold text-2xl tracking-tight text-[#222222]">
-              Bong<span className="text-[#D62828]">Pizza</span>
+            <span className="font-black text-2xl tracking-tight text-[#222222]">
+              বং <span className="text-[#D62828]">Pizza</span>
             </span>
           </Link>
 
@@ -106,7 +106,7 @@ export const LandingPage = () => {
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#222222] tracking-tight leading-tight">
               Speed Up Your Restaurant Orders & Settle Bills with{" "}
-              <span className="text-[#D62828]">BongPizza</span>
+              <span className="text-[#D62828]">বং Pizza</span>
             </h1>
 
             <p className="mt-6 text-lg text-[#6B7280] leading-relaxed">
@@ -356,15 +356,17 @@ export const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white py-8 mt-auto">
+      <footer className="bg-white py-8 mt-auto border-t border-[#E5E7EB]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-[#6B7280] gap-4">
           <div className="flex items-center space-x-2">
-            <Pizza className="w-4 h-4 text-[#D62828]" />
-            <span className="font-bold text-[#222222]">BongPizza POS System</span>
-            <span>— Fast, Reliable Restaurant Software</span>
+            <div className="w-6 h-6 rounded bg-black p-0.5 overflow-hidden flex items-center justify-center">
+              <img src="/images/logo.jpeg" alt="বং Pizza" className="w-full h-full object-contain" />
+            </div>
+            <span className="font-bold text-[#222222]">বং Pizza POS System</span>
+            <span>— A Touch of Bengal</span>
           </div>
           <div>
-            © {new Date().getFullYear()} BongPizza. Light theme interface. All rights reserved.
+            © {new Date().getFullYear()} বং Pizza. Light theme interface. All rights reserved.
           </div>
         </div>
       </footer>

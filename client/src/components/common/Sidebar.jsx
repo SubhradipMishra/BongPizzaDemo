@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { Tag } from "antd";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -26,6 +27,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
       icon: BookOpen,
       label: "Staff Training",
       badge: "Guide",
+      badgeColor: "gold",
     },
     {
       to: "/pos",
@@ -38,6 +40,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
       icon: Activity,
       label: "Live Orders",
       badge: "Live",
+      badgeColor: "red",
     },
     {
       to: "/orders",
@@ -48,6 +51,8 @@ export const Sidebar = ({ isOpen, onClose }) => {
       to: "/kot",
       icon: ChefHat,
       label: "Kitchen (KOT)",
+      badge: "KDS",
+      badgeColor: "orange",
     },
     {
       to: "/receipts",
@@ -82,7 +87,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-black/30 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-30 lg:hidden"
         />
       )}
 
@@ -90,15 +95,18 @@ export const Sidebar = ({ isOpen, onClose }) => {
       <aside
         className={`fixed top-14 bottom-0 left-0 z-30 w-64 bg-white border-r border-[#E5E7EB] flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } no-print`}
+        } no-print shadow-xs`}
       >
-        <div className="p-3 border-b border-[#E5E7EB] bg-[#FAFAFA]">
-          <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-2">
+        <div className="px-4 py-3 border-b border-[#E5E7EB] bg-[#FAFAFA] flex items-center justify-between">
+          <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">
             POS Navigation
           </p>
+          <span className="text-[10px] font-mono font-bold bg-[#FEF2F2] text-[#D62828] px-1.5 py-0.5 rounded border border-[#FECACA]">
+            ONLINE
+          </span>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-2.5 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -107,36 +115,43 @@ export const Sidebar = ({ isOpen, onClose }) => {
                 to={item.to}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  `flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-[#FFC928]/25 text-[#222222] font-semibold border border-[#FFC928]/50"
-                      : "text-[#222222] hover:bg-[#FAFAFA] hover:text-[#D62828]"
-                  } ${item.highlight && !isActive ? "text-[#D62828]" : ""}`
+                      ? "!bg-[#FEF2F2] !text-[#D62828] border border-[#FECACA] shadow-xs"
+                      : "!text-slate-700 hover:!bg-[#F9FAFB] hover:!text-slate-900"
+                  } ${item.highlight && !isActive ? "!text-[#D62828] font-bold" : ""}`
                 }
               >
                 <div className="flex items-center space-x-3">
-                  <Icon
-                    className={`w-4 h-4 ${
-                      item.highlight ? "text-[#D62828]" : "text-[#6B7280]"
-                    }`}
-                  />
-                  <span>{item.label}</span>
+                  <div className={`p-1 rounded-lg ${item.highlight ? "bg-[#FEF2F2]" : ""}`}>
+                    <Icon
+                      className={`w-4 h-4 ${
+                        item.highlight ? "!text-[#D62828]" : "!text-slate-500"
+                      }`}
+                    />
+                  </div>
+                  <span className="!text-inherit font-medium">{item.label}</span>
                 </div>
 
                 {item.badge && (
-                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-[#D62828] text-white">
+                  <Tag color={item.badgeColor || "default"} style={{ margin: 0, fontWeight: 700, fontSize: "10px", borderRadius: "10px", padding: "0 6px" }}>
                     {item.badge}
-                  </span>
+                  </Tag>
                 )}
               </NavLink>
             );
           })}
         </nav>
 
-        {/* Footer info in sidebar */}
-        <div className="p-3 border-t border-[#E5E7EB] bg-[#FAFAFA] text-[11px] text-[#6B7280] text-center">
-          <p className="font-semibold text-[#222222]">BongPizza v1.0</p>
-          <p>Restaurant POS & Billing</p>
+        {/* Footer info in sidebar with blended transparent logo */}
+        <div className="p-3 border-t border-slate-200 bg-slate-50 flex items-center space-x-2.5">
+          <div className="w-10 h-10 flex items-center justify-center shrink-0">
+            <img src="/images/logo.png" alt="বং Pizza" className="w-full h-full object-contain drop-shadow-xs" />
+          </div>
+          <div className="overflow-hidden">
+            <p className="font-bold text-xs !text-slate-900 m-0 leading-tight">বং Pizza POS</p>
+            <p className="text-[11px] !text-slate-500 m-0 mt-0.5 truncate">A Touch of Bengal</p>
+          </div>
         </div>
       </aside>
     </>

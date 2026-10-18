@@ -129,10 +129,14 @@ export const ReceiptModal = ({ order, receiptId, onClose }) => {
               }`}
             >
               {/* Header */}
-              <div className="text-center space-y-0.5 border-b border-black pb-2 mb-2">
+              <div className="text-center space-y-1 border-b border-black pb-2 mb-2">
+                <div className="w-12 h-12 mx-auto bg-black rounded-lg p-0.5 overflow-hidden flex items-center justify-center">
+                  <img src="/images/logo.jpeg" alt="বং Pizza" className="w-full h-full object-contain" />
+                </div>
                 <h2 className="text-base font-black tracking-tight uppercase">
-                  {settings?.shopName || "BongPizza Restaurant"}
+                  {settings?.shopName || "বং Pizza"}
                 </h2>
+                <p className="text-[9px] uppercase tracking-wider font-bold">A Touch of Bengal</p>
                 {settings?.address && (
                   <p className="text-[10px] leading-tight text-gray-700">
                     {settings.address}
@@ -290,10 +294,10 @@ export const ReceiptModal = ({ order, receiptId, onClose }) => {
               {/* Footer */}
               <div className="text-center pt-2 space-y-1">
                 <p className="text-[10px] font-semibold">
-                  {settings?.receiptFooter || "Thank you for visiting BongPizza!"}
+                  {settings?.receiptFooter || "Thank you for visiting বং Pizza!"}
                 </p>
                 <p className="text-[9px] text-gray-500">
-                  Powered by BongPizza Restaurant POS
+                  Powered by বং Pizza Restaurant POS
                 </p>
               </div>
             </div>

@@ -66,21 +66,25 @@ export const LoginPage = () => {
           className="inline-flex items-center text-xs font-semibold text-[#6B7280] hover:text-[#D62828] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-          Back to BongPizza Home
+          Back to বং Pizza Home
         </Link>
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-14 h-14 rounded-2xl bg-[#FFC928] flex items-center justify-center shadow-xs">
-            <Pizza className="w-8 h-8 text-[#D62828]" />
+          <div className="w-20 h-20 rounded-2xl bg-black border-2 border-amber-400/50 flex items-center justify-center shadow-lg p-1 overflow-hidden">
+            <img
+              src="/images/logo.jpeg"
+              alt="বং Pizza"
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
-        <h2 className="mt-4 text-center text-2xl font-extrabold text-[#222222]">
-          Bong<span className="text-[#D62828]">Pizza</span> POS Login
+        <h2 className="mt-4 text-center text-2xl font-black text-[#222222]">
+          বং <span className="text-[#D62828]">Pizza</span> POS Login
         </h2>
         <p className="mt-1 text-center text-xs text-[#6B7280]">
-          Enter your authorized biller credentials to access the terminal
+          A Touch of Bengal — Enter your authorized biller credentials to access the terminal
         </p>
       </div>
 

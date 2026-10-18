@@ -24,7 +24,7 @@ export const updateSettingsAction = createAsyncThunk(
 
 const initialState = {
   settings: {
-    shopName: "BongPizza",
+    shopName: "বং Pizza",
     address: "",
     phone: "",
     email: "",
@@ -33,7 +33,7 @@ const initialState = {
     pricesIncludeTax: false,
     cgstRate: 0,
     sgstRate: 0,
-    receiptFooter: "Thank you for visiting BongPizza!",
+    receiptFooter: "Thank you for visiting বং Pizza!",
     receiptPaperSize: "80mm",
     showGstNumberOnReceipt: true,
     autoPrintReceipt: false,

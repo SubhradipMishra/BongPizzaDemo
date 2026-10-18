@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Popconfirm, Button, Tag, Tooltip } from "antd";
+import { toast } from "react-toastify";
 import { orderApi } from "../api/orderApi";
 import { formatCurrency, formatDateTime, formatTimeOnly } from "../utils/formatters";
 import StatusBadge from "../components/common/StatusBadge";
@@ -109,26 +111,21 @@ export const LiveOrdersPage = () => {
     try {
       await orderApi.updateOrderStatus(orderId, newStatus);
       setStatusUpdateOrder(null);
+      toast.success(`Kitchen status updated to ${newStatus.toUpperCase()}`);
       await fetchOrders();
     } catch (err) {
-      alert(`Status update failed: ${err.message}`);
+      toast.error(`Status update failed: ${err.message}`);
     }
   };
 
   // Handle cancel order
-  const handleCancelOrder = async (orderId) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to cancel this order? This cannot be undone."
-      )
-    ) {
-      return;
-    }
+  const handleCancelOrder = async (orderId, orderNo) => {
     try {
       await orderApi.cancelOrder(orderId);
+      toast.success(`Order ${orderNo || ""} cancelled successfully`);
       await fetchOrders();
     } catch (err) {
-      alert(`Cancellation failed: ${err.message}`);
+      toast.error(`Cancellation failed: ${err.message}`);
     }
   };
 
@@ -357,15 +354,23 @@ export const LiveOrdersPage = () => {
                           Receipt
                         </button>
 
-                        {/* Cancel button */}
+                        {/* Cancel button with Popconfirm */}
                         {!isCompleted && !isCancelled && (
-                          <button
-                            onClick={() => handleCancelOrder(order._id)}
-                            className="px-1.5 py-1 text-gray-400 hover:text-red-600 transition-colors"
-                            title="Cancel Order"
+                          <Popconfirm
+                            title={`Cancel Order ${order.orderNo}`}
+                            description="Are you sure you want to cancel this order? This action cannot be undone."
+                            onConfirm={() => handleCancelOrder(order._id, order.orderNo)}
+                            okText="Yes, Cancel"
+                            cancelText="No"
+                            okButtonProps={{ danger: true }}
                           >
-                            <XCircle className="w-3.5 h-3.5 inline" />
-                          </button>
+                            <button
+                              className="px-1.5 py-1 text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
+                              title="Cancel Order"
+                            >
+                              <XCircle className="w-3.5 h-3.5 inline" />
+                            </button>
+                          </Popconfirm>
                         )}
                       </td>
                     </tr>

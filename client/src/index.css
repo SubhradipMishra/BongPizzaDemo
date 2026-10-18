@@ -28,6 +28,12 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
+
+  /* Override Ant Design default blue link colors */
+  a, a:hover, a:focus, a:active, a:visited {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
 }
 
 /* Print Stylesheet for Receipts & KOT */

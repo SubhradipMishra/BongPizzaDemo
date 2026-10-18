@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Popconfirm, Modal, Button, Tag, Space, Tooltip } from "antd";
+import { toast } from "react-toastify";
 import { tableApi } from "../api/tableApi";
 import { formatCurrency, formatTimeOnly } from "../utils/formatters";
 import StatusBadge from "../components/common/StatusBadge";
@@ -83,8 +85,9 @@ export const TableManagementPage = () => {
       setTables((prev) =>
         prev.map((t) => (t._id === tableId ? { ...t, status: newStatus } : t))
       );
+      toast.success(`Table status updated to ${newStatus.toUpperCase()}`);
     } catch (err) {
-      alert(`Status update failed: ${err.message}`);
+      toast.error(`Status update failed: ${err.message}`);
     } finally {
       setUpdatingTableId(null);
     }
@@ -92,8 +95,11 @@ export const TableManagementPage = () => {
 
   // Create Table Group
   const handleSaveGroup = async (e) => {
-    e.preventDefault();
-    if (!groupTitle.trim()) return;
+    if (e && e.preventDefault) e.preventDefault();
+    if (!groupTitle.trim()) {
+      toast.warning("Please enter a section name");
+      return;
+    }
 
     setFormSubmitting(true);
     try {
@@ -102,12 +108,13 @@ export const TableManagementPage = () => {
         noOfTables: Number(groupNoOfTables) || 1,
         description: groupDesc.trim(),
       });
+      toast.success(`Section "${groupTitle.trim()}" created successfully!`);
       setGroupTitle("");
       setGroupDesc("");
       setIsGroupModalOpen(false);
       await loadData();
     } catch (err) {
-      alert(`Error creating group: ${err.message}`);
+      toast.error(`Error creating section: ${err.message}`);
     } finally {
       setFormSubmitting(false);
     }
@@ -115,9 +122,9 @@ export const TableManagementPage = () => {
 
   // Create Table
   const handleSaveTable = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!tableNumber.trim() || !tableGroupId) {
-      alert("Please enter table number and select group.");
+      toast.warning("Please enter table number and select section");
       return;
     }
 
@@ -128,11 +135,12 @@ export const TableManagementPage = () => {
         tableGroupId,
         capacity: Number(tableCapacity) || 2,
       });
+      toast.success(`Table "${tableNumber.trim()}" added successfully!`);
       setTableNumber("");
       setIsTableModalOpen(false);
       await loadData();
     } catch (err) {
-      alert(`Error creating table: ${err.message}`);
+      toast.error(`Error creating table: ${err.message}`);
     } finally {
       setFormSubmitting(false);
     }
@@ -140,28 +148,23 @@ export const TableManagementPage = () => {
 
   // Delete Table
   const handleDeleteTable = async (id, num) => {
-    if (!window.confirm(`Delete table ${num}?`)) return;
     try {
       await tableApi.deleteTable(id);
+      toast.success(`Table ${num} deleted`);
       await loadData();
     } catch (err) {
-      alert(`Delete failed: ${err.message}`);
+      toast.error(`Delete failed: ${err.message}`);
     }
   };
 
   // Delete Table Group
   const handleDeleteGroup = async (id, title) => {
-    if (
-      !window.confirm(
-        `Delete section "${title}"? This might impact tables assigned to it.`
-      )
-    )
-      return;
     try {
       await tableApi.deleteTableGroup(id);
+      toast.success(`Section "${title}" deleted`);
       await loadData();
     } catch (err) {
-      alert(`Delete failed: ${err.message}`);
+      toast.error(`Delete failed: ${err.message}`);
     }
   };
 
@@ -423,13 +426,21 @@ export const TableManagementPage = () => {
                     )}
                   </div>
 
-                  <button
-                    onClick={() => handleDeleteGroup(group._id, group.title)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
-                    title="Delete Group"
+                  <Popconfirm
+                    title={`Delete Section "${group.title}"`}
+                    description="Are you sure you want to delete this table section? This may affect assigned tables."
+                    onConfirm={() => handleDeleteGroup(group._id, group.title)}
+                    okText="Yes, Delete"
+                    cancelText="No"
+                    okButtonProps={{ danger: true }}
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    <button
+                      className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                      title="Delete Section"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </Popconfirm>
                 </div>
 
                 {/* Tables Grid */}
@@ -462,16 +473,27 @@ export const TableManagementPage = () => {
                             }
                             className={`p-4 rounded-2xl border flex flex-col justify-between transition-all relative group cursor-pointer hover:shadow-md hover:scale-[1.01] ${style.bg}`}
                           >
-                            {/* Delete Table Button */}
-                            <button
-                              onClick={() =>
-                                handleDeleteTable(tbl._id, tbl.tableNumber)
-                              }
-                              className="absolute top-2.5 right-2.5 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
-                              title="Delete Table"
+                            {/* Delete Table Button with Popconfirm */}
+                            <Popconfirm
+                              title={`Delete Table ${tbl.tableNumber}`}
+                              description={`Are you sure you want to remove table ${tbl.tableNumber}?`}
+                              onConfirm={(e) => {
+                                e?.stopPropagation();
+                                handleDeleteTable(tbl._id, tbl.tableNumber);
+                              }}
+                              onCancel={(e) => e?.stopPropagation()}
+                              okText="Yes, Delete"
+                              cancelText="No"
+                              okButtonProps={{ danger: true }}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                              <button
+                                onClick={(e) => e.stopPropagation()}
+                                className="absolute top-2.5 right-2.5 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
+                                title="Delete Table"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </Popconfirm>
 
                             {/* Table Info Header */}
                             <div>

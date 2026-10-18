@@ -10,11 +10,11 @@ export const ProtectedRoute = ({ children }) => {
   if (!initialized) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFFDF8]">
-        <div className="w-16 h-16 rounded-full bg-[#FFC928]/20 flex items-center justify-center mb-4">
-          <Pizza className="w-8 h-8 text-[#D62828] animate-pulse" />
+        <div className="w-20 h-20 rounded-2xl bg-black border-2 border-amber-400/50 flex items-center justify-center p-1.5 mb-4 shadow-sm overflow-hidden animate-pulse">
+          <img src="/images/logo.jpeg" alt="বং Pizza" className="w-full h-full object-contain" />
         </div>
-        <h2 className="text-xl font-bold text-[#222222]">BongPizza POS</h2>
-        <p className="text-sm text-[#6B7280] mt-1">Verifying secure session...</p>
+        <h2 className="text-xl font-black text-[#222222]">বং Pizza POS</h2>
+        <p className="text-sm text-[#6B7280] mt-1">Verifying secure terminal session...</p>
       </div>
     );
   }

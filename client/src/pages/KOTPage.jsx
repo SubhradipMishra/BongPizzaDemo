@@ -289,7 +289,7 @@ export const KOTPage = () => {
         <div className="hidden print-only text-black bg-white font-mono text-xs p-4 max-w-[80mm] mx-auto border-2 border-black">
           <div className="text-center border-b-2 border-black pb-2 mb-2">
             <h2 className="text-lg font-black uppercase tracking-wider">
-              KITCHEN ORDER TICKET (KOT)
+              বং PIZZA — KITCHEN ORDER TICKET (KOT)
             </h2>
             <p className="text-sm font-black">
               {printingKOT.tableNumber
@@ -333,7 +333,7 @@ export const KOTPage = () => {
           )}
 
           <div className="text-center text-[10px] text-gray-700">
-            — BONGPIZZA KITCHEN DISPLAY —
+            — বং PIZZA KITCHEN DISPLAY —
           </div>
         </div>
       )}

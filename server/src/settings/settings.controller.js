@@ -3,12 +3,12 @@ import SettingsModel from "./settings.model.js";
 
 // DEFAULT SETTINGS
 const defaultSettings = {
-    shopName: "BongPizza",
+    shopName: "বং Pizza",
     taxEnabled: false,
     pricesIncludeTax: false,
     cgstRate: 0,
     sgstRate: 0,
-    receiptFooter: "Thank you for visiting BongPizza!",
+    receiptFooter: "Thank you for visiting বং Pizza!",
     receiptPaperSize: "80mm",
     showGstNumberOnReceipt: true,
     autoPrintReceipt: false,
