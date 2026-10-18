@@ -9,6 +9,11 @@ export default defineConfig({
     react()
   ],
   server: {
-    port: 5173
-  }
+    port: 5173,
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    chunkSizeWarningLimit: 1600,
+  },
 })
