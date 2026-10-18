@@ -41,17 +41,39 @@ app.use(cors({
         // Allow requests with no origin (mobile apps, curl, Postman)
         if (!origin) return callback(null, true);
 
-        const allowed = [
-            process.env.FRONTEND_URL,          // production Render URL
-            "http://localhost:5173",            // local Vite dev
+        const cleanOrigin = origin.replace(/\/+$/, "");
+
+        const envOrigins = (process.env.FRONTEND_URL || "")
+            .split(",")
+            .map((o) => o.trim().replace(/\/+$/, ""))
+            .filter(Boolean);
+
+        const staticAllowed = [
+            "http://localhost:5173",
             "http://127.0.0.1:5173",
             "http://localhost:3000",
-        ].filter(Boolean);
+            "https://bong-pizza-demo.vercel.app",
+        ];
 
-        if (allowed.includes(origin)) {
+        let isAllowed =
+            envOrigins.includes(cleanOrigin) ||
+            staticAllowed.includes(cleanOrigin);
+
+        if (!isAllowed) {
+            try {
+                const parsedUrl = new URL(cleanOrigin);
+                if (parsedUrl.hostname.endsWith(".vercel.app") || parsedUrl.hostname.endsWith(".onrender.com")) {
+                    isAllowed = true;
+                }
+            } catch (_) {}
+        }
+
+        if (isAllowed) {
             return callback(null, true);
         }
-        return callback(new Error(`CORS: origin ${origin} not allowed`));
+
+        console.warn(`[CORS] Blocked request from origin: ${origin}`);
+        return callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
