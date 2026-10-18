@@ -18,6 +18,13 @@ import SettingsRouter from "./settings/settings.route.js";
 import ReportRouter from "./report/report.route.js";
 import BackupRouter from "./backup/backup.route.js";
 import { initBackupScheduler } from "./backup/backup.scheduler.js";
+import dns from "node:dns";
+
+try {
+    dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
+} catch (err) {
+    console.warn("Notice: DNS servers fallback warning:", err.message);
+}
 
 mongoose.connect(process.env.DB_URL)
     .then(() => {
