@@ -145,7 +145,7 @@ export const createPayment = async (req, res) => {
             }
 
             // Create payment record(s)
-            const createOptions = sess ? { session: sess } : {};
+            const createOptions = sess ? { session: sess, ordered: true } : {};
             const paymentDocs = paymentEntries.map((p) => ({
                 orderId,
                 method: p.method,
@@ -165,13 +165,21 @@ export const createPayment = async (req, res) => {
                 order.paymentStatus = "paid";
                 // Procedure move forward: when fully paid, if dine-in, free table to available
                 if (order.tableId) {
-                    await TableModel.findByIdAndUpdate(order.tableId, { status: "available" });
+                    await TableModel.findByIdAndUpdate(
+                        order.tableId,
+                        { status: "available" },
+                        sess ? { session: sess } : {}
+                    );
                 }
             } else if (totalPaid > 0) {
                 order.paymentStatus = "partially_paid";
                 // Procedure move forward: when partially paid, table status is billed
                 if (order.tableId) {
-                    await TableModel.findByIdAndUpdate(order.tableId, { status: "billed" });
+                    await TableModel.findByIdAndUpdate(
+                        order.tableId,
+                        { status: "billed" },
+                        sess ? { session: sess } : {}
+                    );
                 }
             } else {
                 order.paymentStatus = "unpaid";
@@ -186,12 +194,16 @@ export const createPayment = async (req, res) => {
 
             // Synchronize existing Receipt snapshot if one exists for this order
             try {
-                const existingReceipt = await ReceiptModel.findOne({ orderId: order._id });
+                const receiptQuery = ReceiptModel.findOne({ orderId: order._id });
+                if (sess) receiptQuery.session(sess);
+                const existingReceipt = await receiptQuery;
                 if (existingReceipt) {
-                    const allPayments = await PaymentModel.find({
+                    const payQuery2 = PaymentModel.find({
                         orderId: order._id,
                         status: "completed",
                     }).sort({ createdAt: 1 });
+                    if (sess) payQuery2.session(sess);
+                    const allPayments = await payQuery2;
 
                     const totalAmountPaid = Math.round(
                         allPayments.reduce((acc, p) => acc + Number(p.amount), 0) * 100
